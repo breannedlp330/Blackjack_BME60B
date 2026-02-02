@@ -36,7 +36,6 @@ while playAgain == "y"
     % Deal in order: P1..Pn, Dealer(up), P1..Pn, Dealer(hole)
     [myPlayers, dealerHand, playingDeck] = initialDealInOrder(myPlayers, nPlayers, playingDeck);
     disp("----- Initial Deal -----")
-    disp("Dealer shows: " + dealerHand.cardName(1))
 
     for p = 1:nPlayers
         showHand(string(myPlayers.name{p}) + " hand", myPlayers.hand{p});
