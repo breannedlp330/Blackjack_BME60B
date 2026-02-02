@@ -1,21 +1,15 @@
 clear; clc;
 %% Ready, Set, Start! 
-%shuffle deck of 52 cards by randomly arranging their orders at the start
+
 % Asking for the number of players
 nPlayers = input("How many players? ");  % numeric input
+
 % initialize deck 
-myVals = [2:10, 10, 10, 10, 11]; 
-myVals = repmat(myVals, [1,4]);
+myDeck= initDeck();
 
-mySuits=[repmat("Hearts", [1,13]),repmat("Diamonds", [1,13]),repmat("Clubs", [1,13]),repmat("Spades", [1,13])]
-
-myDeck=table(); 
-myDeck.vals=myVals';
-myDeck.suits=mySuits';
-myDeck.cardName = string(myDeck.vals) + " of " + myDeck.suits;
-
-myPlayers = struct();
-myPlayers.name = cell(nPlayers, 1);
+%% initialize players
+myPlayers = struct(); % create array for players
+myPlayers.name = cell(nPlayers, 1); %name the first column of myPlayers "name"
 
 for i = 1:nPlayers 
     myPlayers.name{i} = input("Player "+ i + " name: ", "s");
@@ -26,30 +20,6 @@ myPlayers.hand    = cell(nPlayers, 1);            % each will hold a table of ca
 myPlayers.vals = zeros(nPlayers, 1);           % numeric hand value per player
 myPlayers.inRound = true(nPlayers, 1);            % still playing this round (not busted)
 
-
-% use randperm function to shuffle, once shuffled cards must be drawn in
-% the shuffled order 
-%{
-function #2: deal the cards 
-draws cards in the order after shuffle and deal 2 cards to each player 
-for i=1:nPlayers
-    hand = playingDeck(1:2, :); 
-    playingDeck(1:2, :) = []; 
-    myPlayers.handVal{i} = hand.vals';
-end 
-
-%}
-
-% Blackjack Pseudocode 
-
-
-
-%% Player input initialization 
-%Need inputs, how many players and initial $$$
-%Need larger loop for how long to play 
-%Initialize player variables 
-
-%% Game initialization 
 %% Main loop 
 playAgain = "y";
 while playAgain == "y"
@@ -85,78 +55,88 @@ while playAgain == "y"
         end
     end
 
-
+%need to add dealerLogic in here somewhere
+%also add money aspect
+%showHand does not show up either
     playAgain = lower(string(input("Play again? (y/n): ", "s")));
 end
 
 %% my local functions
 
-function showHand()
-% Show each player's hand
+function myDeck = initDeck() %create deck
+
+%create array with card values 4 times
+myVals = [2:10, 10, 10, 10, 11]; 
+myVals = repmat(myVals, [1,4]);
+
+%create array with suit names
+mySuits=[repmat("Hearts", [1,13]),...
+    repmat("Diamonds", [1,13]),...
+    repmat("Clubs", [1,13]),...
+    repmat("Spades", [1,13])];
+
+myDeck=table(); %create table named "myDeck"
+myDeck.vals=myVals';%transpose myVals and assign column in myDeck table
+myDeck.suits=mySuits';%transpose mySuits and assign column in myDeck table
+myDeck.cardName = string(myDeck.vals) + " of " + myDeck.suits; %third column in myDeck table has name of card
+end
+
+
+function shuffledDeck = shuffleDeck(myDeck) %shuffle deck
+    shuffledDeck = myDeck(randperm(height(myDeck)), :);
+end
+
+
+function showHand() % Show each player's hand
+
     for p = 1:nPlayers
         disp(string(myPlayers.name{p}) + " has: " + strjoin(myPlayers.hand{p}.cardName, ", "))
         disp("Value = " + myPlayers.handVal(p))
     end
 end
 
-function shuffledDeck = shuffleDeck(myDeck)
-    shuffledDeck = myDeck(randperm(height(myDeck)), :);
-end
 
-function myDeck = innitDeck()
-%create a loop for each suit 
-%should my deck be an array, tables, structures
-%Align card values, suits 
-end 
-
-%{
-function [updatedPlayer, updatedDeck]=dealCards(shuffledDeck, player)
-%think about player variable 
-% update player hand, calculate player hand value 
-% if hand> 21 and contains an Ace -> make the Ace Value = 1
-% use the evaluate Hand function here 
-% update shuffledDeck to remove cards dealt shuffledDeck(1) =[]; 
-end 
-%}
-
-function handValue = evaluateHand(hand)
+function handValue = evaluateHand(hand) % evaluate hand & change A if needed
     vals = hand.vals;
-    handValue = sum(vals);
+    handValue = sum(vals); % sums values of cards in hand
 
-    while handValue > 21 && any(vals == 11)
-        aceIndex = find(vals == 11, 1, "first");
-        vals(aceIndex) = 1;
-        handValue = sum(vals);
+    while handValue > 21 && any(vals == 11) % when the hand is valued more than 21 and contains an Ace
+        aceIndex = find(vals == 11, 1, "first"); % identifies the first Ace
+        vals(aceIndex) = 1; % adjusts Ace value to 1
+        handValue = sum(vals); % sums new values of cards
     end
 end
 
 
-function [dealerHand, playingDeck] = dealerLogic(dealerHand, playingDeck)
+function [dealerHand, playingDeck] = dealerLogic(dealerHand, playingDeck) % reveal dealer card and prompt dealer decision
     disp("Dealer reveals: " + strjoin(dealerHand.cardName, ", "))
     [dealerHand, playingDeck] = dealerTurn(dealerHand, playingDeck);
 end
 
 
-function [dealerHand, playingDeck] = dealerTurn(dealerHand, playingDeck)
-    dealerVal = evaluateHand(dealerHand);
+function [dealerHand, playingDeck] = dealerTurn(dealerHand, playingDeck) % decide whether dealer hits or stands
+    dealerVal = evaluateHand(dealerHand); % value of dealer's hand
 
-    while dealerVal < 17
-        [newCard, playingDeck] = dealOneCard(playingDeck);
+    while dealerVal < 17 
+        [newCard, playingDeck] = dealOneCard(playingDeck); % deal card to dealer
         dealerHand = [dealerHand; newCard];  % append row to table
-        dealerVal = evaluateHand(dealerHand);
+        dealerVal = evaluateHand(dealerHand); % value of dealer hand
     end
 end
 
-function [card, playingDeck] = dealOneCard(playingDeck)
+
+function [card, playingDeck] = dealOneCard(playingDeck) % choose top card, clear from playingDeck
     card = playingDeck(1,:);     % 1-row table
     playingDeck(1,:) = [];       % remove from deck
 end
 
-function [myPlayers, dealerHand, playingDeck] = initialDealInOrder(myPlayers, nPlayers, playingDeck)
+
+function [myPlayers, dealerHand, playingDeck] = initialDealInOrder(myPlayers, nPlayers, playingDeck) % original deal
     % Initialize empty hands as empty tables with the same variables as playingDeck
     emptyHand = playingDeck([],:);
 
-    for p = 1:nPlayers
+    % players and dealer initialized with empty hand
+    for p = 1:nPlayers 
         myPlayers.hand{p} = emptyHand;
     end
     dealerHand = emptyHand;
@@ -164,18 +144,18 @@ function [myPlayers, dealerHand, playingDeck] = initialDealInOrder(myPlayers, nP
     % Pass 1: each player gets 1 face-up card, then dealer gets 1 face-up card
     for p = 1:nPlayers
         [card, playingDeck] = dealOneCard(playingDeck);
-        myPlayers.hand{p} = [myPlayers.hand{p}; card];
+        myPlayers.hand{p} = [myPlayers.hand{p}; card]; % append row of card chosen to the player's hand
     end
     [dealerUpCard, playingDeck] = dealOneCard(playingDeck);
-    dealerHand = [dealerHand; dealerUpCard];
+    dealerHand = [dealerHand; dealerUpCard]; % append card chosen to dealer's hand
 
     % Pass 2: each player gets 1 face-up card, then dealer gets 1 face-down card
     for p = 1:nPlayers
         [card, playingDeck] = dealOneCard(playingDeck);
-        myPlayers.hand{p} = [myPlayers.hand{p}; card];
+        myPlayers.hand{p} = [myPlayers.hand{p}; card]; % append card to player table
     end
     [dealerHoleCard, playingDeck] = dealOneCard(playingDeck);
-    dealerHand = [dealerHand; dealerHoleCard];
+    dealerHand = [dealerHand; dealerHoleCard]; % append card to dealer table
 
     % Update numeric hand values (optional but convenient)
     for p = 1:nPlayers
