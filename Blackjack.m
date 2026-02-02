@@ -35,7 +35,12 @@ while playAgain == "y"
 
     % Deal in order: P1..Pn, Dealer(up), P1..Pn, Dealer(hole)
     [myPlayers, dealerHand, playingDeck] = initialDealInOrder(myPlayers, nPlayers, playingDeck);
+    disp("----- Initial Deal -----")
+    disp("Dealer shows: " + dealerHand.cardName(1))
 
+    for p = 1:nPlayers
+        showHand(string(myPlayers.name{p}) + " hand", myPlayers.hand{p});
+    end
 
     % Show only dealer up card
     disp("Dealer shows: " + dealerHand.cardName(1))
@@ -46,14 +51,19 @@ while playAgain == "y"
             disp(string(myPlayers.name{q}) + " hand value: " + myPlayers.vals(q));
             if myPlayers.vals(q) > 21
                 disp("Bust! " + myPlayers.vals(q) + " loses");
+                showHand(string(myPlayers.name{q}) + " final hand", myPlayers.hand{q});
+
                 break
             else
                 playerDecision = input(string(myPlayers.name{q}) + ", Hit or Stand?", "s");
                     if strcmpi(playerDecision, "stand") == true
+                        disp(string(myPlayers.name{q}) + " stands.")
                         break
                     elseif strcmpi(playerDecision, "hit") == true
                         [newCard, playingDeck] = dealOneCard(playingDeck);
                         myPlayers.hand{q} = [myPlayers.hand{q}; newCard];
+                        disp(string(myPlayers.name{q}) + " draws: " + newCard.cardName)
+                        showHand(string(myPlayers.name{q}) + " hand", myPlayers.hand{q});
                     else
                         disp("Please type hit or stand.");
                     end
@@ -97,13 +107,12 @@ function shuffledDeck = shuffleDeck(myDeck) %shuffle deck
 end
 
 
-function showHand(myPlayers, nPlayers)  % Show each player's hand
-
-    for p = 1:nPlayers
-        disp(string(myPlayers.name{p}) + " has: " + strjoin(myPlayers.hand{p}.cardName, ", "))
-        disp("Value = " + myPlayers.vals(p))
-    end
+function showHand(label, hand)
+    % This function prints the cards in a hand and the evaluated value.
+    disp(label + ": " + strjoin(hand.cardName, ", "))
+    disp("Value = " + evaluateHand(hand))
 end
+
 
 
 function handValue = evaluateHand(hand) % evaluate hand & change A if needed
