@@ -25,6 +25,7 @@ playAgain = "y";
 while playAgain == "y"
 
     playingDeck = shuffleDeck(myDeck);
+    disp("----- NEW ROUND -----")
     disp("Players: " + nPlayers)
     disp("Deck size at start: " + height(playingDeck))
 
@@ -49,13 +50,9 @@ while playAgain == "y"
             myPlayers.vals(q) = evaluateHand(myPlayers.hand{q});
             disp(string(myPlayers.name{q}) + " hand value: " + myPlayers.vals(q));
             if myPlayers.vals(q) > 21
-<<<<<<< HEAD
                 disp("Bust! " + myPlayers.vals(q) + " loses");
                 showHand(string(myPlayers.name{q}) + " final hand", myPlayers.hand{q});
 
-=======
-                disp("Bust! " + myPlayers.name{q} + " loses");
->>>>>>> 7d5def37d4d8e2c8e53b1fb9933f791848ad3614
                 break
             else
                 playerDecision = input(string(myPlayers.name{q}) + ", Hit or Stand?", "s");
