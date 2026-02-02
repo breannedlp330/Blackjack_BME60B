@@ -25,6 +25,10 @@ playAgain = "y";
 while playAgain == "y"
 
     playingDeck = shuffleDeck(myDeck);
+    disp("----- NEW ROUND -----")
+    disp("Players: " + nPlayers)
+    disp("Deck size at start: " + height(playingDeck))
+
 
     % Reset round state if needed
     myPlayers.inRound(:) = true;
@@ -39,22 +43,28 @@ while playAgain == "y"
     for q = 1:nPlayers
         while true
             myPlayers.vals(q) = evaluateHand(myPlayers.hand{q});
-            disp(myPlayers.name{q} + " hand value: " + myPlayers.vals(q));
+            disp(string(myPlayers.name{q}) + " hand value: " + myPlayers.vals(q));
             if myPlayers.vals(q) > 21
                 disp("Bust! " + myPlayers.vals(q) + " loses");
                 break
             else
-                playerDecision = input(myPlayers.name{q} + ", Hit or Stand?", "s");
+                playerDecision = input(string(myPlayers.name{q}) + ", Hit or Stand?", "s");
                     if strcmpi(playerDecision, "stand") == true
                         break
                     elseif strcmpi(playerDecision, "hit") == true
                         [newCard, playingDeck] = dealOneCard(playingDeck);
                         myPlayers.hand{q} = [myPlayers.hand{q}; newCard];
+                    else
+                        disp("Please type hit or stand.");
                     end
+
             end
         end
     end
 
+    if any(myPlayers.vals <= 21)
+    [dealerHand, playingDeck] = dealerLogic(dealerHand, playingDeck);
+    end
 %need to add dealerLogic in here somewhere
 %also add money aspect
 %showHand does not show up either
@@ -87,11 +97,11 @@ function shuffledDeck = shuffleDeck(myDeck) %shuffle deck
 end
 
 
-function showHand() % Show each player's hand
+function showHand(myPlayers, nPlayers)  % Show each player's hand
 
     for p = 1:nPlayers
         disp(string(myPlayers.name{p}) + " has: " + strjoin(myPlayers.hand{p}.cardName, ", "))
-        disp("Value = " + myPlayers.handVal(p))
+        disp("Value = " + myPlayers.vals(p))
     end
 end
 
@@ -141,7 +151,7 @@ function [myPlayers, dealerHand, playingDeck] = initialDealInOrder(myPlayers, nP
     end
     dealerHand = emptyHand;
 
-    % Pass 1: each player gets 1 face-up card, then dealer gets 1 face-up card
+    % first pass, each player gets 1 face-up card, then dealer gets 1 face-up card
     for p = 1:nPlayers
         [card, playingDeck] = dealOneCard(playingDeck);
         myPlayers.hand{p} = [myPlayers.hand{p}; card]; % append row of card chosen to the player's hand
@@ -149,7 +159,7 @@ function [myPlayers, dealerHand, playingDeck] = initialDealInOrder(myPlayers, nP
     [dealerUpCard, playingDeck] = dealOneCard(playingDeck);
     dealerHand = [dealerHand; dealerUpCard]; % append card chosen to dealer's hand
 
-    % Pass 2: each player gets 1 face-up card, then dealer gets 1 face-down card
+    % second pass, each player gets 1 face-up card, then dealer gets 1 face-down card
     for p = 1:nPlayers
         [card, playingDeck] = dealOneCard(playingDeck);
         myPlayers.hand{p} = [myPlayers.hand{p}; card]; % append card to player table
@@ -157,8 +167,8 @@ function [myPlayers, dealerHand, playingDeck] = initialDealInOrder(myPlayers, nP
     [dealerHoleCard, playingDeck] = dealOneCard(playingDeck);
     dealerHand = [dealerHand; dealerHoleCard]; % append card to dealer table
 
-    % Update numeric hand values (optional but convenient)
+    % update numeric hand values (optional but convenient)
     for p = 1:nPlayers
-        myPlayers.handVal(p) = evaluateHand(myPlayers.hand{p});
+        myPlayers.vals(p) = evaluateHand(myPlayers.hand{p});
     end
 end
