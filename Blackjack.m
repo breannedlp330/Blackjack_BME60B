@@ -45,7 +45,7 @@ while playAgain == "y"
             myPlayers.vals(q) = evaluateHand(myPlayers.hand{q});
             disp(string(myPlayers.name{q}) + " hand value: " + myPlayers.vals(q));
             if myPlayers.vals(q) > 21
-                disp("Bust! " + myPlayers.vals(q) + " loses");
+                disp("Bust! " + myPlayers.name{q} + " loses");
                 break
             else
                 playerDecision = input(string(myPlayers.name{q}) + ", Hit or Stand?", "s");
