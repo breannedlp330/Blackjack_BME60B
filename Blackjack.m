@@ -15,12 +15,13 @@ for i = 1:nPlayers
     myPlayers.name{i} = input("Player "+ i + " name: ", "s");
 end 
 
-myPlayers.money = repmat(1000, [nPlayers, 1]);
+%myPlayers.money = repmat(1000, [nPlayers, 1]);
 myPlayers.hand    = cell(nPlayers, 1);            % each will hold a table of cards
 myPlayers.vals = zeros(nPlayers, 1);           % numeric hand value per player
 myPlayers.inRound = true(nPlayers, 1);            % still playing this round (not busted)
 
 %% Main loop 
+%needs comments
 playAgain = "y";
 while playAgain == "y"
 
@@ -49,8 +50,9 @@ while playAgain == "y"
             myPlayers.vals(q) = evaluateHand(myPlayers.hand{q});
             disp(string(myPlayers.name{q}) + " hand value: " + myPlayers.vals(q));
             if myPlayers.vals(q) > 21
-                disp("Bust! " + myPlayers.vals(q) + " loses");
+                disp("Bust! " + myPlayers.name(q) + " loses");
                 showHand(string(myPlayers.name{q}) + " final hand", myPlayers.hand{q});
+                myPlayers.inRound(q)= false;
 
                 break
             else
@@ -74,9 +76,9 @@ while playAgain == "y"
     if any(myPlayers.vals <= 21)
     [dealerHand, playingDeck] = dealerLogic(dealerHand, playingDeck);
     end
-%need to add dealerLogic in here somewhere
-%also add money aspect
-%showHand does not show up either
+
+    compareHands(nPlayers, myPlayers, dealerHand);
+
     playAgain = lower(string(input("Play again? (y/n): ", "s")));
 end
 
@@ -109,20 +111,7 @@ end
 function showHand(label, hand)
     % This function prints the cards in a hand and the evaluated value.
     disp(label + ": " + strjoin(hand.cardName, ", "))
-    disp("Value = " + evaluateHand(hand))
-end
-
-
-
-function handValue = evaluateHand(hand) % evaluate hand & change A if needed
-    vals = hand.vals;
-    handValue = sum(vals); % sums values of cards in hand
-
-    while handValue > 21 && any(vals == 11) % when the hand is valued more than 21 and contains an Ace
-        aceIndex = find(vals == 11, 1, "first"); % identifies the first Ace
-        vals(aceIndex) = 1; % adjusts Ace value to 1
-        handValue = sum(vals); % sums new values of cards
-    end
+    %disp("Value = " + evaluateHand(hand))
 end
 
 
@@ -137,9 +126,43 @@ function [dealerHand, playingDeck] = dealerTurn(dealerHand, playingDeck) % decid
 
     while dealerVal < 17 
         [newCard, playingDeck] = dealOneCard(playingDeck); % deal card to dealer
+        disp("Dealer draws: " + newCard.cardName); % show what dealer draws
         dealerHand = [dealerHand; newCard];  % append row to table
+        showHand("Dealer Hand", dealerHand); % show new dealer hand
         dealerVal = evaluateHand(dealerHand); % value of dealer hand
     end
+
+end
+
+
+function compareHands (nPlayers, myPlayers, dealerHand) % need comments
+disp("--- Round Results ---")
+
+dealerVal = evaluateHand(dealerHand);
+disp("Dealer hand value = " + dealerVal);
+
+    for i=1:nPlayers
+        playerVal = evaluateHand(myPlayers.hand{i});
+        disp(myPlayers.name{i} + " hand value = " + playerVal);
+
+        if playerVal <= 21 && dealerVal > 21
+            disp("Dealer busts! " + myPlayers.name{i} + " wins!")
+
+        elseif playerVal > 21
+            disp(myPlayers.name{i} + " already busted. Dealer wins!")
+
+        elseif dealerVal == playerVal
+            disp(myPlayers.name{i} + " draws with dealer!")
+
+        elseif dealerVal > playerVal
+            disp (myPlayers.name{i} + " loses!")
+
+        else
+            disp (myPlayers.name{i} + " wins!")
+
+        end
+    end
+
 end
 
 
@@ -178,5 +201,17 @@ function [myPlayers, dealerHand, playingDeck] = initialDealInOrder(myPlayers, nP
     % update numeric hand values (optional but convenient)
     for p = 1:nPlayers
         myPlayers.vals(p) = evaluateHand(myPlayers.hand{p});
+    end
+end
+
+
+function handValue = evaluateHand(hand) % evaluate hand & change A if needed
+    vals = hand.vals;
+    handValue = sum(vals); % sums values of cards in hand
+
+    while handValue > 21 && any(vals == 11) % when the hand is valued more than 21 and contains an Ace
+        aceIndex = find(vals == 11, 1, "first"); % identifies the first Ace
+        vals(aceIndex) = 1; % adjusts Ace value to 1
+        handValue = sum(vals); % sums new values of cards
     end
 end
